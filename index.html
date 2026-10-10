@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>推拉箱谜题</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ============ 主菜单 ============ -->
+  <section id="screen-menu" class="screen hidden">
+    <h1 class="game-title">推拉箱谜题</h1>
+    <p class="subtitle">点击方向箱，沿箭头方向推、沿反方向拉，把全部钥匙箱送上钥匙孔。</p>
+    <div class="menu-buttons">
+      <button id="btn-start" class="btn-primary">开始游戏</button>
+      <button id="btn-importer">导入关卡</button>
+      <button id="btn-editor">关卡编辑器</button>
+      <button id="btn-rules">规则说明</button>
+    </div>
+    <div class="folder-actions">
+      <button id="btn-open-folder">📂 打开关卡文件夹</button>
+      <button id="btn-restore-folder" class="hidden">🔁 恢复上次的关卡文件夹</button>
+      <p id="fs-hint" class="fs-hint hidden"></p>
+      <input id="folder-input" type="file" webkitdirectory multiple class="hidden">
+    </div>
+    <div class="level-lists">
+      <section class="level-panel">
+        <h2>内置关卡</h2>
+        <div id="builtin-list"></div>
+      </section>
+      <section class="level-panel local-panel">
+        <h2>📁 本地文件夹</h2>
+        <div id="local-list"></div>
+      </section>
+      <section class="level-panel">
+        <h2>我的关卡</h2>
+        <div id="custom-list"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ 游戏界面 ============ -->
+  <section id="screen-game" class="screen hidden">
+    <header class="topbar">
+      <button id="btn-game-back" class="btn-ghost">← 返回</button>
+      <div class="topbar-title" id="game-title">关卡</div>
+      <div class="topbar-steps">步数 <span id="game-steps">0</span></div>
+    </header>
+    <div id="game-win-banner" class="win-banner hidden"></div>
+    <div id="game-grid-wrap" class="grid-wrap">
+      <div id="game-grid" class="grid"></div>
+    </div>
+    <footer class="game-footer">
+      <div class="bottombar">
+        <button id="btn-undo">↩ 撤回</button>
+        <button id="btn-redo">↪ 重做</button>
+        <button id="btn-restart">⟳ 重开</button>
+      </div>
+      <p class="key-hint">键盘：← 撤回 · → 重做 · 空格 重开</p>
+    </footer>
+  </section>
+
+  <!-- ============ 关卡编辑器 ============ -->
+  <section id="screen-editor" class="screen hidden">
+    <header class="topbar">
+      <button id="btn-editor-back" class="btn-ghost">← 返回</button>
+      <div class="topbar-title">关卡编辑器</div>
+      <div class="topbar-steps"></div>
+    </header>
+    <div class="editor-body">
+      <aside class="editor-controls">
+        <div class="control-group">
+          <h3>调色板</h3>
+          <div id="editor-palette" class="palette"></div>
+          <p class="control-hint">左键：画选中内容 · 右键：擦除箱子（保留地砖）。画「虚空」可擦地砖。</p>
+        </div>
+        <div class="control-group">
+          <h3>尺寸</h3>
+          <label>宽 <input id="editor-cols" type="number" min="3" max="40" step="1" value="8"></label>
+          <label>高 <input id="editor-rows" type="number" min="3" max="40" step="1" value="8"></label>
+          <p class="control-hint">修改后自动应用，超出部分被裁剪。</p>
+        </div>
+        <div class="control-group">
+          <h3>关卡信息</h3>
+          <label>关卡名 <input id="editor-name" type="text" placeholder="未命名关卡"></label>
+          <label>作者 <input id="editor-author" type="text" placeholder="选填"></label>
+          <label>提示 <input id="editor-hint" type="text" placeholder="选填"></label>
+        </div>
+        <div class="control-group editor-actions">
+          <button id="btn-editor-open-local">打开本地关卡…</button>
+          <button id="btn-editor-save" class="btn-primary">保存</button>
+          <button id="btn-editor-save-as">另存为本地文件…</button>
+          <button id="btn-editor-import">导入 TXT</button>
+          <button id="btn-editor-export">导出 TXT</button>
+          <button id="btn-editor-test">试玩</button>
+        </div>
+        <div id="editor-status" class="editor-status"></div>
+        <input id="editor-file" type="file" accept=".txt,text/plain" class="hidden">
+      </aside>
+      <div class="editor-grid-wrap">
+        <div id="editor-grid" class="grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 导入界面 ============ -->
+  <section id="screen-importer" class="screen hidden">
+    <header class="topbar">
+      <button id="btn-importer-back" class="btn-ghost">← 返回</button>
+      <div class="topbar-title">导入关卡</div>
+      <div class="topbar-steps"></div>
+    </header>
+    <div class="importer-body">
+      <p class="importer-hint">粘贴关卡文本，或从 .txt 文件读取。格式说明见 docs/level-format.md</p>
+      <textarea id="importer-textarea" spellcheck="false" placeholder="name: 我的关卡&#10;&#10;[floor]&#10;####&#10;#..#&#10;####&#10;&#10;[boxes]&#10;....&#10;.K..&#10;...."></textarea>
+      <div id="importer-error" class="error-box hidden"></div>
+      <div class="importer-actions">
+        <button id="btn-importer-file">读取 .txt 文件</button>
+        <button id="btn-importer-load" class="btn-primary">载入并开始</button>
+      </div>
+      <input id="importer-file" type="file" accept=".txt,text/plain" class="hidden">
+    </div>
+  </section>
+
+  <!-- ============ 编辑器：打开本地关卡弹窗 ============ -->
+  <div id="editor-local-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>打开本地关卡</h2>
+      <div id="editor-local-list" class="editor-local-list"></div>
+      <button id="btn-editor-local-cancel">取消</button>
+    </div>
+  </div>
+
+  <!-- ============ 规则说明弹窗 ============ -->
+  <div id="rules-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>规则说明</h2>
+      <ul>
+        <li>棋盘地面分三种：<b>地砖</b>（可通行、可放箱子）、<b>钥匙孔</b>（目标格）、<b>虚空</b>（不可通行、不可放箱子）。</li>
+        <li>箱子分四种：<b>白板箱</b>（纯障碍）、<b>固定箱</b>（完全不可移动）、<b>钥匙箱</b>（目标物）、<b>方向箱</b>（玩家可点击）。</li>
+        <li>点击方向箱：沿箭头方向扫描，把第一只箱子<b>推</b>远一格；沿反方向扫描，把第一只箱子<b>拉</b>近一格。方向箱自己永远不移动。</li>
+        <li>推/拉的目标格若越界、是虚空或已有箱子（包括方向箱自身占的格子），该侧操作跳过，不判失败。</li>
+        <li>推与拉独立结算：一侧失败不影响另一侧；两侧都没变化时不计步、不入历史。</li>
+        <li>只要有一侧成功就计 1 步。所有<b>钥匙箱</b>都位于<b>钥匙孔</b>上即通关。</li>
+      </ul>
+      <button id="btn-rules-close" class="btn-primary">知道了</button>
+    </div>
+  </div>
+
+  <script src="js/namespace.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/levels/builtin.js"></script>
+  <script src="js/fs-access.js"></script>
+  <script src="js/level-store.js"></script>
+  <script src="js/level.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/ui/router.js"></script>
+  <script src="js/ui/menu.js"></script>
+  <script src="js/ui/game.js"></script>
+  <script src="js/ui/editor.js"></script>
+  <script src="js/ui/importer.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "pushpull-puzzle",
+  "version": "1.0.0",
+  "private": true,
+  "description": "推拉箱谜题 —— 纯前端小游戏",
+  "scripts": {
+    "build:levels": "node scripts/build-levels.js",
+    "watch:levels": "node --watch scripts/build-levels.js"
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}

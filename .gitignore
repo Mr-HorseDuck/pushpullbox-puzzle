@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs & temp
+*.log
+node_modules/
+dist/
+
+# 注意：不要忽略 js/levels/builtin.js（自动生成，但需要提交到 git）
+
+# 工具缓存（不要提交）
+.deepcode/
